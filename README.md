@@ -1,4 +1,4 @@
-## This project implements a reproducible dispersion‑skew backtest, through a React frontend: it builds index and single‑stock option legs using a Black–Scholes pricing proxy and an implied‑vol mapping derived from realized volatility, then computes daily and cumulative P&L. Below is the backtest routine that the Flask API calls.
+### This project implements a reproducible dispersion‑skew backtest, through a React frontend: it builds index and single‑stock option legs using a Black–Scholes pricing proxy and an implied‑vol mapping derived from realized volatility, then computes daily and cumulative P&L. Below is the backtest routine that the Flask API calls.
 
 ### 1. Import Packages
 
@@ -105,19 +105,6 @@ returns
 
 
 <div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
@@ -310,19 +297,6 @@ realized_vol
 
 
 <div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
