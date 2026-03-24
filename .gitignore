@@ -1,0 +1,32 @@
+# Ignore everything by default
+/*
+
+# Unignore all top-level entries (files and directories)
+!/*
+
+# But re-ignore all top-level directories (we want only root files plus specific dirs)
+/*/
+
+# Keep frontend and backend directories and their contents
+!/frontend/
+!/frontend/**
+
+!/backend/
+!/backend/**
+
+# Keep the .gitignore file itself tracked
+!.gitignore
+
+# Optionally, keep README and other common root docs
+!/README.md
+!/LICENSE*
+
+# If you have other root files you want tracked, add them explicitly above.
+
+# Ignore log and pid files everywhere
+*.log
+*.pid
+*.db
+**/*.log
+**/*.pid
+**/*.db

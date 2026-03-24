@@ -1,0 +1,8 @@
+cd '/Users/fernandoferrari/Documents/VSCode Projects/Skew Backtest/frontend' && npm install --legacy-peer-deps && npm run dev
+
+cd '/Users/fernandoferrari/Documents/VSCode Projects/Skew Backtest/frontend' && npm install && npm run dev
+
+
+cd '/Users/fernandoferrari/Documents/VSCode Projects/Skew Backtest/frontend'
+npm install --legacy-peer-deps
+npm run dev

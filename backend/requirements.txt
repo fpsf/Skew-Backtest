@@ -1,0 +1,7 @@
+Flask>=2.3
+flask-cors
+pandas
+numpy
+sqlalchemy
+yfinance
+scipy
