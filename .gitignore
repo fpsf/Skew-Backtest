@@ -30,3 +30,18 @@
 **/*.log
 **/*.pid
 **/*.db
+
+# Frontend build and dependencies
+/frontend/node_modules/
+/frontend/dist/
+/frontend/.vite/
+/frontend/build/
+
+# Backend virtualenv and Python artifacts
+/backend/.venv/
+/backend/__pycache__/
+**/*.pyc
+
+# Local env files
+.env
+.env.local
