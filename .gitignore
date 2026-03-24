@@ -1,27 +1,20 @@
-# Ignore everything by default
+## Ignore everything by default; only explicitly allow what we want
 /*
 
-# Unignore all top-level entries (files and directories)
-!/*
+## Allow the .gitignore itself so you can selectively track files
+!.gitignore
 
-# But re-ignore all top-level directories (we want only root files plus specific dirs)
-/*/
-
-# Keep frontend and backend directories and their contents
+## Explicitly allow frontend and backend directories and their contents
 !/frontend/
 !/frontend/**
 
 !/backend/
 !/backend/**
 
-# Keep the .gitignore file itself tracked
-!.gitignore
-
-# Optionally, keep README and other common root docs
-!/README.md
-!/LICENSE*
-
-# If you have other root files you want tracked, add them explicitly above.
+## NOTE: root files (README, LICENSE, etc.) remain ignored by default.
+## If you want to track a specific root file later, add it explicitly to the index:
+##   git add -f README.md
+## or update this .gitignore to unignore it (e.g. add `!/README.md`).
 
 # Ignore log and pid files everywhere
 *.log
@@ -45,3 +38,5 @@
 # Local env files
 .env
 .env.local
+
+!/README.md
