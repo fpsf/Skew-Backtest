@@ -1,4 +1,4 @@
-This project implements a reproducible dispersion‑skew backtest, through a React frontend: it builds index and single‑stock option legs using a Black–Scholes pricing proxy and an implied‑vol mapping derived from realized volatility, then computes daily and cumulative P&L. Below is the backtest routine that the Flask API calls.
+## This project implements a reproducible dispersion‑skew backtest, through a React frontend: it builds index and single‑stock option legs using a Black–Scholes pricing proxy and an implied‑vol mapping derived from realized volatility, then computes daily and cumulative P&L. Below is the backtest routine that the Flask API calls.
 
 ### 1. Import Packages
 
@@ -102,15 +102,6 @@ prices = prices.dropna(axis=1, how="any")
 returns = np.log(prices / prices.shift(1))
 returns
 ```
-
-    [**********************82%**************         ]  9 of 11 completed$JBSS3.SA: possibly delisted; no timezone found
-    [*********************100%***********************]  10 of 11 completed
-    
-    1 Failed download:
-    [*********************100%***********************]  10 of 11 completed['JBSS3.SA']: possibly delisted; no timezone found
-
-
-
 
 
 <div>
@@ -306,7 +297,6 @@ returns
 </div>
 
 
-
 ### 5. Set RV Window
 
 
@@ -317,8 +307,6 @@ realized_vol = returns.rolling(RV_WINDOW, min_periods=1).std() * np.sqrt(252)
 
 realized_vol
 ```
-
-
 
 
 <div>
@@ -514,7 +502,6 @@ realized_vol
 </div>
 
 
-
 ### 6. Index/Singles Legs & Total P&L
 
 
@@ -596,255 +583,6 @@ plt.show()
 ```
 
 
-    
-![png](Dispersion_Skew_Backtest_files/Dispersion_Skew_Backtest_13_0.png)
-    
-
-
-### 8. Testing Grounds
-
-
-```python
-# compute a representative index vega (use today's/first trade date vega used for ibov sizing)
-# here we take vega of the first ibov pnl series if available, otherwise compute from spot
-if isinstance(ibov_pnl, pd.Series) and not ibov_pnl.empty:
-    # pick first trade date used to size ibov; better: compute ibov_vega explicitly when creating ibov positions
-    ibov_total_vega = 100_000  # keep as notional target (or compute actual ibov vega if you prefer)
-else:
-    ibov_total_vega = 100_000
-
-# compute per-stock vegas and allocate proportionally so sum(per_name_vega * vega_i) ~= -ibov_total_vega
-vegas = {}
-for name in iterator:
-    # use a representative sigma (first non-nan) and a representative S (current spot or mean)
-    sigma_rep = realized_vol[name].iloc[RV_WINDOW:].dropna()
-    if sigma_rep.empty:
-        continue
-    sigma0 = sigma_rep.iloc[0]
-    S_rep = prices[name].iloc[RV_WINDOW] if not np.isnan(prices[name].iloc[RV_WINDOW]) else prices[name].mean()
-    # choose strike K similarly (you already use strike_from_delta)
-    K_rep = strike_from_delta(S_rep, T, implied_vol_proxy(sigma0))
-    vegas[name] = option_vega(S_rep, K_rep, T, sigma0)
-
-vega_sum = sum(abs(v) for v in vegas.values()) or 1.0
-
-single_series_list = []
-for name in iterator:
-    if name not in vegas:
-        continue
-    # allocate vega notional proportionally (negative to offset index)
-    per_name_vega_notional = -ibov_total_vega * (abs(vegas[name]) / vega_sum)
-    # align sigma_series to the same date range you want
-    sigma_series = realized_vol[name].iloc[RV_WINDOW:].dropna()
-    if sigma_series.empty:
-        continue
-    # use spot series or S at trade dates (avoid using global mean if you want time alignment)
-    S_series = prices[name].loc[sigma_series.index]
-    # create pnl using spot series aligned to sigma_series: change option_pnl_series to accept S_series if needed
-    # for simplicity keep using a fixed S_rep (but prefer using S_series for time alignment)
-    S_rep = prices[name].loc[sigma_series.index[0]]
-    K = strike_from_delta(S_rep, T, implied_vol_proxy(sigma_series.iloc[0]))
-    pnl = option_pnl_series(
-        S_rep,
-        K,
-        T,
-        sigma_series,
-        vega_notional=per_name_vega_notional,
-    )
-    single_series_list.append(pnl)
-```
-
-
-```python
-if single_series_list:
-    single_pnl = pd.concat(single_series_list, axis=1).sum(axis=1)
-else:
-    single_pnl = pd.Series(dtype=float)
-
-# align and add
-total_pnl = ibov_pnl.add(single_pnl, fill_value=0)
-cum_pnl = total_pnl.cumsum()
-```
-
-
-```python
-plt.figure(figsize=(12,6))
-plt.plot(single_pnl.cumsum(), label="Dispersion Skew P&L") # singles_pnl.cumsum() @ diff scale
-plt.axhline(0, linestyle="--", color="black")
-plt.legend()
-plt.title("Single P&L Cumsum Test")
-plt.show()
-```
-
-
-    
-![png](Dispersion_Skew_Backtest_files/Dispersion_Skew_Backtest_17_0.png)
-    
-
-
-
-```python
-plt.figure(figsize=(12,6))
-plt.plot(cum_pnl, label="Dispersion Skew P&L") # singles_pnl.cumsum() @ diff scale
-plt.axhline(0, linestyle="--", color="black")
-plt.legend()
-plt.title("IBOV Dispersion Skew Strategy")
-plt.show()
-```
-
-
-    
-![png](Dispersion_Skew_Backtest_files/Dispersion_Skew_Backtest_18_0.png)
-    
-
-
-
-```python
-# new plotting cell: show legs and total (daily + cumulative)
-df = pd.concat(
-    [
-        ibov_pnl.rename("ibov_pnl") if isinstance(ibov_pnl, pd.Series) else pd.Series(dtype=float),
-        single_pnl.rename("single_pnl") if isinstance(single_pnl, pd.Series) else pd.Series(dtype=float),
-        total_pnl.rename("total_pnl") if isinstance(total_pnl, pd.Series) else pd.Series(dtype=float),
-    ],
-    axis=1,
-).fillna(0)
-
-fig, axes = plt.subplots(2, 1, figsize=(12, 10), sharex=True)
-
-# Daily P&L
-axes[0].plot(df.index, df["ibov_pnl"], label="IBOV P&L")
-axes[0].plot(df.index, df["single_pnl"], label="Singles P&L")
-axes[0].plot(df.index, df["total_pnl"], label="Total P&L", linewidth=2, color="black")
-axes[0].axhline(0, linestyle="--", color="gray")
-axes[0].legend()
-axes[0].set_title("Daily P&L")
-
-# Cumulative P&L
-axes[1].plot(df.index, df["ibov_pnl"].cumsum(), label="IBOV Cumulative")
-axes[1].plot(df.index, df["single_pnl"].cumsum(), label="Singles Cumulative")
-axes[1].plot(df.index, df["total_pnl"].cumsum(), label="Total Cumulative", linewidth=2, color="black")
-axes[1].axhline(0, linestyle="--", color="gray")
-axes[1].legend()
-axes[1].set_title("Cumulative P&L")
-
-plt.tight_layout()
-plt.show()
-```
-
-
-    
-![png](Dispersion_Skew_Backtest_files/Dispersion_Skew_Backtest_19_0.png)
-    
-
-
-
-```python
-df
-```
-
-
-
-
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>ibov_pnl</th>
-      <th>single_pnl</th>
-      <th>total_pnl</th>
-    </tr>
-    <tr>
-      <th>Date</th>
-      <th></th>
-      <th></th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>2022-03-04</th>
-      <td>0.000000e+00</td>
-      <td>0.000000</td>
-      <td>0.000000e+00</td>
-    </tr>
-    <tr>
-      <th>2022-03-07</th>
-      <td>1.446202e+03</td>
-      <td>-701.435822</td>
-      <td>7.447661e+02</td>
-    </tr>
-    <tr>
-      <th>2022-03-08</th>
-      <td>-2.541737e+03</td>
-      <td>-125.295335</td>
-      <td>-2.667032e+03</td>
-    </tr>
-    <tr>
-      <th>2022-03-09</th>
-      <td>2.578388e+03</td>
-      <td>-1502.041981</td>
-      <td>1.076346e+03</td>
-    </tr>
-    <tr>
-      <th>2022-03-10</th>
-      <td>-4.210280e+02</td>
-      <td>163.602726</td>
-      <td>-2.574252e+02</td>
-    </tr>
-    <tr>
-      <th>...</th>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-    </tr>
-    <tr>
-      <th>2026-03-18</th>
-      <td>9.298542e+04</td>
-      <td>-150.310495</td>
-      <td>9.283511e+04</td>
-    </tr>
-    <tr>
-      <th>2026-03-19</th>
-      <td>-1.005149e+05</td>
-      <td>36.772122</td>
-      <td>-1.004781e+05</td>
-    </tr>
-    <tr>
-      <th>2026-03-20</th>
-      <td>1.417950e+06</td>
-      <td>-330.664776</td>
-      <td>1.417619e+06</td>
-    </tr>
-    <tr>
-      <th>2026-03-23</th>
-      <td>1.996557e+06</td>
-      <td>-1329.400037</td>
-      <td>1.995228e+06</td>
-    </tr>
-    <tr>
-      <th>2026-03-24</th>
-      <td>-2.235883e+06</td>
-      <td>723.330304</td>
-      <td>-2.235160e+06</td>
-    </tr>
-  </tbody>
-</table>
-<p>1013 rows × 3 columns</p>
-</div>
+![png](plots/Dispersion_Skew_Backtest_13_0.png)
 
 
