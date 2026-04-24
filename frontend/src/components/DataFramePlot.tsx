@@ -1,7 +1,9 @@
 import React from 'react'
-import Plot from 'react-plotly.js'
+import createPlotlyComponent from 'react-plotly.js/factory'
+import Plotly from './plotlyCustom'
 
 type DF = Array<Record<string, any>>
+const Plot = createPlotlyComponent(Plotly)
 
 function isDateString(v: any) {
   if (v instanceof Date) return true

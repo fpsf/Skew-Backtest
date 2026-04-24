@@ -1,0 +1,13 @@
+{
+  "exported_at": "2026-04-23T00:00:00Z",
+  "datasets": {
+    "df": {
+      "file": "df.csv",
+      "rows": 998
+    },
+    "df_cum": {
+      "file": "df_cum.csv",
+      "rows": 998
+    }
+  }
+}

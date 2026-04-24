@@ -11,6 +11,9 @@
 !/backend/
 !/backend/**
 
+!/.github/
+!/.github/**
+
 ## NOTE: root files (README, LICENSE, etc.) remain ignored by default.
 ## If you want to track a specific root file later, add it explicitly to the index:
 ##   git add -f README.md
