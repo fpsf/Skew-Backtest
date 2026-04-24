@@ -80,6 +80,7 @@ jobs:
 
   codeql:
     name: CodeQL
+    if: ${{ vars.ENABLE_CODEQL == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -109,7 +110,6 @@ jobs:
     needs:
       - frontend-verify
       - backend-verify
-      - codeql
     permissions:
       attestations: write
       contents: read
@@ -161,6 +161,7 @@ jobs:
         run: npm run build
 
       - name: Attest build provenance
+        if: ${{ vars.ENABLE_BUILD_PROVENANCE == 'true' }}
         uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be
         with:
           subject-path: frontend/dist

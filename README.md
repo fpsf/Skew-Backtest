@@ -19,6 +19,18 @@ The repository now uses a split CI/CD design:
 
 This keeps delivery artifact-based and avoids scheduled workflows pushing generated files straight into `main`.
 
+## Optional GitHub features
+
+The workflows are now safe by default for repositories that do not have paid or billing-gated GitHub security features enabled.
+
+- `ENABLE_CODEQL=true`
+  Turns on the optional CodeQL job in CI and delivery workflows.
+
+- `ENABLE_BUILD_PROVENANCE=true`
+  Turns on artifact provenance attestation during the delivery workflow.
+
+If those repository variables are not set, the core frontend/backend checks and GitHub Pages delivery still run.
+
 ## Local development
 
 ### Frontend
